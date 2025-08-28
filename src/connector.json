@@ -1,0 +1,12 @@
+{
+  "Version": "0.1",
+  "Arguments": [
+    {
+      "Key": "--password",
+      "IsRequired": true,
+      "IsHidden": true
+    }
+  ],
+  "Cookies": [
+  ]
+}
