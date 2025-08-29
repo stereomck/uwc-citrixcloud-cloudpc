@@ -18,7 +18,7 @@ public class SessionWindowHandler : ScriptBase
 
     void Execute()
     {
-        _sessionId = Guid.NewGuid().ToString("N")[..8];
+        _sessionId = Guid.NewGuid().ToString("N").Substring(0, 8);
         _workflowEngine = new SessionWorkflowEngine(_sessionId);
         
         try
@@ -88,7 +88,7 @@ public class SessionWindowHandler : ScriptBase
                     ActionId = "USER_03",
                     ActionName = "Type Username",
                     Type = ActionType.Type,
-                    Parameters = new Dictionary<string, object> { {"text", GetParameter("username") ?? ""} }
+                    Parameters = new Dictionary<string, object> { {"text", Arguments["username"] ?? ""} }
                 },
                 new WorkflowAction
                 {
@@ -292,14 +292,15 @@ public class SessionWorkflowEngine
     private OptimizedOCRManager _ocrManager;
     
     public WorkflowLogger Logger { get; private set; }
-    
+
     public SessionWorkflowEngine(string sessionId)
     {
         _sessionId = sessionId;
         Logger = new WorkflowLogger(sessionId);
         _ocrManager = new OptimizedOCRManager();
-        
-        Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] WORKFLOW_INIT | SessionId: {sessionId}");\n    }
+
+        Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] WORKFLOW_INIT | SessionId: {sessionId}");
+    }
     
     public void AddStep(WorkflowStep step)
     {
@@ -335,7 +336,7 @@ public class SessionWorkflowEngine
         
         var workflowDuration = DateTime.Now - workflowStartTime;
         var completedSteps = _steps.Count(s => s.Status == StepStatus.Completed);
-        Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] WORKFLOW_COMPLETE | Duration: {workflowDuration.TotalMilliseconds}ms | Completed: {completedSteps}/{_steps.Count}");\n    }
+        Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] WORKFLOW_COMPLETE | Duration: {workflowDuration.TotalMilliseconds}ms | Completed: {completedSteps}/{_steps.Count}");    }
     
     private void ExecuteStep(WorkflowStep step)
     {
@@ -460,7 +461,7 @@ public class SessionWorkflowEngine
             }
             else
             {
-                action.ErrorMessage = $"Text not found. Searched for: {action.ExpectedText}, Alternatives: {string.Join(\", \", action.AlternativeTexts)}";
+                action.ErrorMessage = $"Text not found. Searched for: {action.ExpectedText}, Alternatives: {string.Join(", ", action.AlternativeTexts)}";
                 return false;
             }
         }
@@ -667,13 +668,17 @@ public class WorkflowLogger
         try
         {
             File.AppendAllText(_logPath, entry + Environment.NewLine);
-            
+
             // Also write to console for immediate feedback
             Console.WriteLine(entry);
+
+            // Write to Engine Logger
+            Log(entry);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] LOG_ERROR | Failed to write log: {ex.Message}");
+            Log($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] LOG_ERROR | Failed to write log: {ex.Message}");
         }
     }
     
