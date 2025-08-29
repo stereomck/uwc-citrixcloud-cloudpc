@@ -284,13 +284,13 @@ public class SessionWindowHandler : ScriptBase
 // Workflow Data Structures
 public class WorkflowStep
 {
-    public string StepId { get; set; }
-    public string StepName { get; set; }
+    public string StepId { get; set; } = string.Empty;
+    public string StepName { get; set; } = string.Empty;
     public StepStatus Status { get; set; } = StepStatus.Pending;
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public List<WorkflowAction> Actions { get; set; } = new List<WorkflowAction>();
-    public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
     public Dictionary<string, object> StepData { get; set; } = new Dictionary<string, object>();
     
     public TimeSpan Duration => EndTime == default ? TimeSpan.Zero : EndTime - StartTime;
@@ -298,16 +298,16 @@ public class WorkflowStep
 
 public class WorkflowAction
 {
-    public string ActionId { get; set; }
-    public string ActionName { get; set; }
+    public string ActionId { get; set; } = string.Empty;
+    public string ActionName { get; set; } = string.Empty;
     public ActionType Type { get; set; }
     public ActionStatus Status { get; set; } = ActionStatus.Pending;
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
-    public string ScreenshotPath { get; set; }
+    public string? ScreenshotPath { get; set; }
     public Dictionary<string, object> Parameters { get; set; } = new Dictionary<string, object>();
-    public string Result { get; set; }
-    public string ErrorMessage { get; set; }
+    public string? Result { get; set; }
+    public string? ErrorMessage { get; set; }
     public bool IsOptional { get; set; } = false;
     public int MaxRetries { get; set; } = 3;
     public int CurrentRetry { get; set; } = 0;
@@ -317,7 +317,7 @@ public class WorkflowAction
 
 public class OCRAction : WorkflowAction
 {
-    public string ExpectedText { get; set; }
+    public string ExpectedText { get; set; } = string.Empty;
     public List<string> AlternativeTexts { get; set; } = new List<string>();
     public bool UseMemoryOCR { get; set; } = true;
     public Point? ClickOffset { get; set; }
@@ -808,7 +808,7 @@ public class WorkflowLogger
 // Optimized OCR Manager with Memory-Based Processing
 public class OptimizedOCRManager
 {
-    private Bitmap _cachedScreenshot;
+    private Bitmap? _cachedScreenshot;
     private DateTime _cacheTime;
     private readonly TimeSpan _cacheTimeout = TimeSpan.FromSeconds(2);
     private string _screenshotDir;
@@ -989,8 +989,8 @@ public class OptimizedOCRManager
 public class OCRResult
 {
     public bool Found { get; set; }
-    public string FoundText { get; set; }
+    public string? FoundText { get; set; }
     public Point Location { get; set; }
     public double Confidence { get; set; }
-    public string Error { get; set; }
+    public string? Error { get; set; }
 }
