@@ -852,7 +852,7 @@ public class OptimizedOCRManager
         if (_cachedScreenshot == null || DateTime.Now - _cacheTime > _cacheTimeout)
         {
             // Cache expired, capture new screenshot
-            _cachedScreenshot?.Dispose();
+            _cachedScreenshot = null; // Clear old cache reference
             _cachedScreenshot = CaptureNewScreenshot();
             _cacheTime = DateTime.Now;
             
