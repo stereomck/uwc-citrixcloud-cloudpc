@@ -5,7 +5,6 @@ using LoginPI.Engine.ScriptBase;
 using LoginPI.Engine.ScriptBase.Components;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -320,7 +319,7 @@ public class OCRAction : WorkflowAction
     public string ExpectedText { get; set; } = string.Empty;
     public List<string> AlternativeTexts { get; set; } = new List<string>();
     public bool UseMemoryOCR { get; set; } = true;
-    public Point? ClickOffset { get; set; }
+    public OCRPoint? ClickOffset { get; set; }
     public double ConfidenceThreshold { get; set; } = 0.7;
 }
 
@@ -715,14 +714,10 @@ public class WorkflowLogger
 
             // Also write to console for immediate feedback
             Console.WriteLine(entry);
-
-            // Write to Engine Logger
-            Log(entry);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] LOG_ERROR | Failed to write log: {ex.Message}");
-            Log($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] LOG_ERROR | Failed to write log: {ex.Message}");
         }
     }
     
@@ -808,7 +803,7 @@ public class WorkflowLogger
 // Optimized OCR Manager with Memory-Based Processing
 public class OptimizedOCRManager
 {
-    private Bitmap? _cachedScreenshot;
+    private object? _cachedScreenshot; // Generic object to hold screenshot data
     private DateTime _cacheTime;
     private readonly TimeSpan _cacheTimeout = TimeSpan.FromSeconds(2);
     private string _screenshotDir;
@@ -829,7 +824,7 @@ public class OptimizedOCRManager
             alternativeTexts = alternativeTexts ?? new List<string>();
             
             // Get screenshot (cached or new)
-            Bitmap screenshot = useCache ? GetCachedScreenshot() : CaptureNewScreenshot();
+            var screenshot = useCache ? GetCachedScreenshot() : CaptureNewScreenshot();
             if (screenshot == null)
             {
                 return new OCRResult { Found = false, Error = "Failed to capture screenshot" };
@@ -851,7 +846,7 @@ public class OptimizedOCRManager
         }
     }
     
-    private Bitmap GetCachedScreenshot()
+    private object? GetCachedScreenshot()
     {
         // Check if cache is still valid
         if (_cachedScreenshot == null || DateTime.Now - _cacheTime > _cacheTimeout)
@@ -871,23 +866,23 @@ public class OptimizedOCRManager
         return _cachedScreenshot;
     }
     
-    private Bitmap CaptureNewScreenshot()
+    private object? CaptureNewScreenshot()
     {
         try
         {
-            // In a real implementation, this would use:
-            // Graphics.CopyFromScreen or similar Windows API
-            // For now, return a placeholder bitmap
+            // In a real implementation, this would use PowerShell or Windows API calls
+            // to capture screenshots without System.Drawing dependency
+            // For now, return a placeholder object representing screenshot data
             
-            // Create a small placeholder bitmap
-            var bitmap = new Bitmap(800, 600);
-            using (var g = Graphics.FromImage(bitmap))
+            var screenshotData = new
             {
-                g.Clear(Color.White);
-                g.DrawString("Mock Screenshot", SystemFonts.DefaultFont, Brushes.Black, 10, 10);
-            }
+                Width = 800,
+                Height = 600,
+                Timestamp = DateTime.Now,
+                Data = "Mock screenshot data - would be actual pixel data or file path"
+            };
             
-            return bitmap;
+            return screenshotData;
         }
         catch (Exception ex)
         {
@@ -896,7 +891,7 @@ public class OptimizedOCRManager
         }
     }
     
-    private OCRResult PerformMemoryOCR(Bitmap screenshot, string expectedText, List<string> alternativeTexts)
+    private OCRResult PerformMemoryOCR(object screenshot, string expectedText, List<string> alternativeTexts)
     {
         try
         {
@@ -920,15 +915,15 @@ public class OptimizedOCRManager
                 
                 if (random.NextDouble() < successRate)
                 {
-                    // Simulate found location
-                    var x = random.Next(0, screenshot.Width - 100);
-                    var y = random.Next(0, screenshot.Height - 50);
+                    // Simulate found location (using fixed dimensions since screenshot is generic object)
+                    var x = random.Next(0, 700); // 800 - 100
+                    var y = random.Next(0, 550); // 600 - 50
                     
                     return new OCRResult
                     {
                         Found = true,
                         FoundText = text,
-                        Location = new Point(x, y),
+                        Location = new OCRPoint(x, y),
                         Confidence = random.NextDouble() * 0.3 + 0.7 // 0.7 to 1.0
                     };
                 }
@@ -962,11 +957,10 @@ public class OptimizedOCRManager
             var screenshot = CaptureNewScreenshot();
             if (screenshot != null)
             {
-                // In real implementation, would save as PNG
+                // In real implementation, would save as PNG via PowerShell
                 // For now, create placeholder
                 File.WriteAllText(fullPath.Replace(".png", ".txt"), 
-                    $"Screenshot saved for {identifier} at {timestamp}\\nDimensions: {screenshot.Width}x{screenshot.Height}");
-                screenshot.Dispose();
+                    $"Screenshot saved for {identifier} at {timestamp}\\nDimensions: 800x600");
                 return fullPath;
             }
             
@@ -981,8 +975,24 @@ public class OptimizedOCRManager
     
     public void Dispose()
     {
-        _cachedScreenshot?.Dispose();
+        // Clear cached screenshot reference
+        _cachedScreenshot = null;
     }
+}
+
+// Simple Point structure to avoid System.Drawing dependency
+public struct OCRPoint
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+    
+    public OCRPoint(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
+    
+    public override string ToString() => $"({X}, {Y})";
 }
 
 // OCR Result Structure
@@ -990,7 +1000,7 @@ public class OCRResult
 {
     public bool Found { get; set; }
     public string? FoundText { get; set; }
-    public Point Location { get; set; }
+    public OCRPoint Location { get; set; }
     public double Confidence { get; set; }
     public string? Error { get; set; }
 }
