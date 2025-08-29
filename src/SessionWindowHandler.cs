@@ -23,7 +23,10 @@ public class SessionWindowHandler : ScriptBase
         
         try
         {
-            SetupAuthenticationWorkflow();
+            // Capture parameters from RunEngineScript call
+            var parameters = CaptureParameters();
+            
+            SetupAuthenticationWorkflow(parameters);
             _workflowEngine.ExecuteWorkflow();
         }
         catch (Exception ex)
@@ -33,7 +36,48 @@ public class SessionWindowHandler : ScriptBase
         }
     }
     
-    private void SetupAuthenticationWorkflow()
+    private Dictionary<string, string> CaptureParameters()
+    {
+        var parameters = new Dictionary<string, string>();
+        
+        try
+        {
+            // Read parameters from standard input (passed by RunEngineScript)
+            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | Reading parameters from stdin...");
+            
+            // Read username
+            Console.WriteLine("Enter username:");
+            var username = Console.ReadLine();
+            parameters["username"] = username ?? "";
+            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | Username received: {(!string.IsNullOrEmpty(username) ? "***" : "empty")}");
+            
+            // Read PIN
+            Console.WriteLine("Enter PIN:");
+            var pin = Console.ReadLine();
+            parameters["pin"] = pin ?? "";
+            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | PIN received: {(!string.IsNullOrEmpty(pin) ? "***" : "empty")}");
+            
+            // Read TOTP Secret
+            Console.WriteLine("Enter TOTP Secret:");
+            var totpSecret = Console.ReadLine();
+            parameters["totpSecret"] = totpSecret ?? "";
+            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | TOTP Secret received: {(!string.IsNullOrEmpty(totpSecret) ? "***" : "empty")}");
+            
+            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | Parameter capture completed successfully");
+        }
+        catch (Exception ex)
+        {
+            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE_ERROR | Failed to capture parameters: {ex.Message}");
+            // Set empty defaults if parameter capture fails
+            parameters["username"] = "";
+            parameters["pin"] = "";
+            parameters["totpSecret"] = "";
+        }
+        
+        return parameters;
+    }
+    
+    private void SetupAuthenticationWorkflow(Dictionary<string, string> parameters)
     {
         // EPA Bypass Step
         var epaStep = new WorkflowStep
@@ -88,7 +132,7 @@ public class SessionWindowHandler : ScriptBase
                     ActionId = "USER_03",
                     ActionName = "Type Username",
                     Type = ActionType.Type,
-                    Parameters = new Dictionary<string, object> { {"text", Arguments["username"] ?? ""} }
+                    Parameters = new Dictionary<string, object> { {"text", parameters["username"]} }
                 },
                 new WorkflowAction
                 {
@@ -152,7 +196,7 @@ public class SessionWindowHandler : ScriptBase
                     ActionId = "PIN_02",
                     ActionName = "Type PIN",
                     Type = ActionType.Type,
-                    Parameters = new Dictionary<string, object> { {"text", GetParameter("pin") ?? ""} }
+                    Parameters = new Dictionary<string, object> { {"text", parameters["pin"]} }
                 }
             }
         };
@@ -169,7 +213,7 @@ public class SessionWindowHandler : ScriptBase
                     ActionId = "TOTP_01",
                     ActionName = "Generate TOTP Code",
                     Type = ActionType.GenerateTOTP,
-                    Parameters = new Dictionary<string, object> { {"secret", GetParameter("totpSecret") ?? ""} }
+                    Parameters = new Dictionary<string, object> { {"secret", parameters["totpSecret"]} }
                 },
                 new OCRAction
                 {
