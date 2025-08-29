@@ -13,8 +13,8 @@ using System.Diagnostics;
 
 public class SessionWindowHandler : ScriptBase
 {
-    private SessionWorkflowEngine _workflowEngine;
-    private string _sessionId;
+    private SessionWorkflowEngine? _workflowEngine;
+    private string? _sessionId;
 
     void Execute()
     {
@@ -27,11 +27,11 @@ public class SessionWindowHandler : ScriptBase
             var parameters = CaptureParameters();
             
             SetupAuthenticationWorkflow(parameters);
-            _workflowEngine.ExecuteWorkflow();
+            _workflowEngine?.ExecuteWorkflow();
         }
         catch (Exception ex)
         {
-            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] WORKFLOW_ERROR | {ex.Message}");
+            _workflowEngine?.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] WORKFLOW_ERROR | {ex.Message}");
             throw;
         }
     }
@@ -43,31 +43,31 @@ public class SessionWindowHandler : ScriptBase
         try
         {
             // Read parameters from standard input (passed by RunEngineScript)
-            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | Reading parameters from stdin...");
+            _workflowEngine?.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | Reading parameters from stdin...");
             
             // Read username
             Console.WriteLine("Enter username:");
             var username = Console.ReadLine();
             parameters["username"] = username ?? "";
-            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | Username received: {(!string.IsNullOrEmpty(username) ? "***" : "empty")}");
+            _workflowEngine?.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | Username received: {(!string.IsNullOrEmpty(username) ? "***" : "empty")}");
             
             // Read PIN
             Console.WriteLine("Enter PIN:");
             var pin = Console.ReadLine();
             parameters["pin"] = pin ?? "";
-            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | PIN received: {(!string.IsNullOrEmpty(pin) ? "***" : "empty")}");
+            _workflowEngine?.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | PIN received: {(!string.IsNullOrEmpty(pin) ? "***" : "empty")}");
             
             // Read TOTP Secret
             Console.WriteLine("Enter TOTP Secret:");
             var totpSecret = Console.ReadLine();
             parameters["totpSecret"] = totpSecret ?? "";
-            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | TOTP Secret received: {(!string.IsNullOrEmpty(totpSecret) ? "***" : "empty")}");
+            _workflowEngine?.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | TOTP Secret received: {(!string.IsNullOrEmpty(totpSecret) ? "***" : "empty")}");
             
-            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | Parameter capture completed successfully");
+            _workflowEngine?.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE | Parameter capture completed successfully");
         }
         catch (Exception ex)
         {
-            _workflowEngine.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE_ERROR | Failed to capture parameters: {ex.Message}");
+            _workflowEngine?.Logger.WriteLog($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] PARAM_CAPTURE_ERROR | Failed to capture parameters: {ex.Message}");
             // Set empty defaults if parameter capture fails
             parameters["username"] = "";
             parameters["pin"] = "";
@@ -272,12 +272,12 @@ public class SessionWindowHandler : ScriptBase
             }
         };
         
-        _workflowEngine.AddStep(epaStep);
-        _workflowEngine.AddStep(usernameStep);
-        _workflowEngine.AddStep(mfaStep);
-        _workflowEngine.AddStep(pinStep);
-        _workflowEngine.AddStep(totpStep);
-        _workflowEngine.AddStep(workspaceStep);
+        _workflowEngine?.AddStep(epaStep);
+        _workflowEngine?.AddStep(usernameStep);
+        _workflowEngine?.AddStep(mfaStep);
+        _workflowEngine?.AddStep(pinStep);
+        _workflowEngine?.AddStep(totpStep);
+        _workflowEngine?.AddStep(workspaceStep);
     }
 }
 
